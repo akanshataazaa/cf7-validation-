@@ -185,12 +185,29 @@ document.addEventListener('DOMContentLoaded', function () {
             };
             
               
-                const validateForm = () => {
+            const validateForm = () => {
                 let valid = true;
                 const fields = form.querySelectorAll('input, select, textarea');
+                const summary = settings.error_display === 'top' ? summaryTop :
+                            settings.error_display === 'bottom' ? summaryBottom : null;
+                
+                if (summary) summary.innerHTML = '';
                 fields.forEach(field => {
                   if (!validateField(field)) valid = false;
                 });
+                
+                if (!valid && summary) {
+                    summary.innerHTML = '<p>Please correct the errors below.</p>';
+                    // if (settings.auto_scroll) summary.scrollIntoView({ behavior: 'smooth' });
+                    
+                    const firstInvalidField = form.querySelector('.cf7-invalid');
+                    if (firstInvalidField) {
+                        const scrollTarget = firstInvalidField.closest('.wpcf7-form-control-wrap') || firstInvalidField;
+                        scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    
+                    
+                }
                 return valid;
               };
             
