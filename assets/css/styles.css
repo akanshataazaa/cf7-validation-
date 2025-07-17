@@ -1,0 +1,93 @@
+/* CF7 Enhancer Styles */
+
+/* Error Styling */
+.cf7-enhancer-error {
+  color: #d63638;
+  font-size: 13px;
+  margin-top: 4px;
+  display: block;
+}
+
+input.cf7-invalid,
+textarea.cf7-invalid,
+select.cf7-invalid {
+  border: 1px solid #d63638 !important;
+  background-color: #fff0f0;
+}
+
+/* Error Summary */
+.cf7-enhancer-summary {
+  padding: 10px 15px;
+  background-color: #f8d7da;
+  border-left: 4px solid #d63638;
+  color: #721c24;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  /*display: none;*/
+}
+
+.cf7-enhancer-summary:empty {
+  display: none;
+}
+
+.cf7-enhancer-summary p {
+  margin: 0;
+}
+
+/* Loading Indicator */
+form.cf7-enhancer-loading::after {
+  content: '';
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #ccc;
+  border-top-color: #333;
+  border-radius: 50%;
+  animation: cf7-spinner 0.6s linear infinite;
+  transform: translateY(-50%);
+  z-index: 99;
+}
+
+@keyframes cf7-spinner {
+  to {
+    transform: rotate(360deg) translateY(-50%);
+  }
+}
+
+/* Floating Labels (if enabled in future) */
+.cf7-floating-label {
+  position: relative;
+}
+
+.cf7-floating-label input,
+.cf7-floating-label textarea {
+  padding: 12px 12px 12px 0;
+}
+
+.cf7-floating-label label {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  transition: 0.2s;
+  pointer-events: none;
+  color: #999;
+  font-size: 14px;
+}
+
+.cf7-floating-label input:focus + label,
+.cf7-floating-label input:not(:placeholder-shown) + label,
+.cf7-floating-label textarea:focus + label,
+.cf7-floating-label textarea:not(:placeholder-shown) + label {
+  top: 0;
+  font-size: 12px;
+  color: #000;
+  transform: translateY(-100%);
+}
+.wpcf7-not-valid-tip,
+.wpcf7-response-output.wpcf7-validation-errors {
+  display: none !important;
+}
