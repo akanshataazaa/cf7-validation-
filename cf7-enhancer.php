@@ -1,4 +1,5 @@
 <?php
+namespace CF7Enhancer;
 /**
  * Plugin Name: CF7 Enhancer
  * Description: Enhances Contact Form 7 with modern client-side validation, UI improvements, and admin-configurable behavior.
@@ -7,7 +8,6 @@
  * Text Domain: cf7-enhancer
  */
 
-namespace CF7Enhancer;
 
 if (!defined('ABSPATH')) exit;
 
@@ -75,4 +75,10 @@ add_action('wpcf7_save_contact_form', function ($cf7) {
     $settings = is_array($settings) ? $settings : [];
 
     update_post_meta($form_id, '_cf7_enhancer_settings', $settings);
+});
+
+
+  add_action('admin_enqueue_scripts', function () {
+    wp_enqueue_media();
+    wp_enqueue_script('cf7-enhancer-admin-upload', PLUGIN_URL . 'assets/js/admin-upload.js', ['jquery'], null, true);
 });
