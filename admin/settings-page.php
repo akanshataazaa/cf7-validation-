@@ -1,3 +1,4 @@
+
 <?php
 
 
@@ -65,6 +66,8 @@ function cf7_enhancer_render_settings_page()
             cf7_enhancer_settings_field_checkbox($toggle, ucfirst(str_replace('_', ' ', $toggle)), $settings);
         }
         
+        
+        
         $has_radio = get_post_meta($selected_form_id, '_cf7_has_radio', true);
         // print_r($has_radio);
         // print_r($settings['radio_custom_validation']);
@@ -98,6 +101,29 @@ function cf7_enhancer_render_settings_page()
             } else {
                 echo "<tr><th>Custom Radio Validation</th><td><em>This form does not contain any radio buttons.</em></td></tr>";
             }
+             // loading indicator starts here
+            
+            echo "<tr>";
+            echo '<th>Custom Loader Settings</th>';
+            echo "<td>";
+            // File upload for loader image
+            $loader_url = $settings['loading_indicator']['url'] ?? '';
+            echo '<label for="loader_image">Loader Image (GIF/PNG): </label>';
+            echo '<input type="text" name="cf7_enhancer_settings[loading_indicator][url]" value="' . esc_attr($loader_url) . '" />';
+            echo '<input type="button" class="button upload_image_button" value="Upload Image" /><br><br>';
+            
+            // Position selector
+            $loader_position = $settings['loading_indicator']['position'] ?? 'right';
+            echo '<label for="loader_position">Loader Position: </label>';
+            echo '<select name="cf7_enhancer_settings[loading_indicator][position]">';
+            foreach (['left', 'right', 'bottom'] as $pos) {
+                echo '<option value="' . $pos . '"' . selected($loader_position, $pos, false) . '>' . ucfirst($pos) . '</option>';
+            }
+            echo '</select><br><br>';
+            echo "</td>";
+            echo "</tr>";
+            
+            // loading indicator ends here
         echo "</table>";
         echo "</tbody>";
         submit_button('Save Settings');
@@ -141,24 +167,101 @@ function cf7_enhancer_settings_field_checkbox($id, $label, $settings)
 }
 
 // Save Settings
+// add_action('admin_init', function () {
+//     if (
+//         isset($_POST['cf7_enhancer_settings'], $_POST['form_id']) &&
+//         check_admin_referer('cf7_enhancer_save_settings', 'cf7_enhancer_nonce')
+//     ) {
+//         $form_id = intval($_POST['form_id']);
+//         // $settings = $_POST['cf7_enhancer_settings'];
+//         // if (!isset($settings['radio_custom_validation'])) {
+//         //     $settings['radio_custom_validation'] = '0';
+//         //     // echo "hello".$settings['radio_custom_validation'];
+//         //     // die;
+//         // }
+        
+        
+//         $raw_settings = $_POST['cf7_enhancer_settings'];
+//         $settings = [];
+        
+//         $toggles = ['realtime_validation', 'floating_labels', 'highlight_invalid', 'auto_scroll', 'loading_indicator'];
+//         foreach ($toggles as $toggle) {
+//             $settings[$toggle] = isset($raw_settings[$toggle]) ? '1' : '0';
+//         }
+        
+//         // Preserve the loader data (nested structure)
+//         if (!empty($raw_settings['loading_indicator']) && is_array($raw_settings['loading_indicator'])) {
+//             $settings['loading_indicator'] = array_merge(
+//                 ['url' => '', 'position' => 'right'],
+//                 $raw_settings['loading_indicator']
+//             );
+//         }
+        
+//         // Radio validation setting (handled separately)
+//         $settings['radio_custom_validation'] = isset($raw_settings['radio_custom_validation']) ? '1' : '0';
+
+//         // echo '<pre>';
+//         // print_r($settings);
+//         // echo '</pre>';
+
+//         update_post_meta($form_id, '_cf7_enhancer_settings', $settings);
+//         add_action('admin_notices', function () {
+//             echo '<div class="updated"><p>Settings saved successfully.</p></div>';
+//         });
+//     }
+// });
+
+
 add_action('admin_init', function () {
     if (
         isset($_POST['cf7_enhancer_settings'], $_POST['form_id']) &&
         check_admin_referer('cf7_enhancer_save_settings', 'cf7_enhancer_nonce')
     ) {
         $form_id = intval($_POST['form_id']);
-        $settings = $_POST['cf7_enhancer_settings'];
-        if (!isset($settings['radio_custom_validation'])) {
-            $settings['radio_custom_validation'] = '0';
-            // echo "hello".$settings['radio_custom_validation'];
-            // die;
+        $raw_settings = $_POST['cf7_enhancer_settings'];
+        $settings = [];
+
+        // Save all known radio fields if set
+        $radio_fields = ['error_display', 'response_position'];
+        foreach ($radio_fields as $field) {
+            if (isset($raw_settings[$field])) {
+                $settings[$field] = sanitize_text_field($raw_settings[$field]);
+            }
         }
+
+        // Save checkbox fields
+        $checkbox_fields = ['realtime_validation', 'floating_labels', 'highlight_invalid', 'auto_scroll'];
+        foreach ($checkbox_fields as $field) {
+            $settings[$field] = isset($raw_settings[$field]) ? '1' : '0';
+        }
+
+        // Save loading indicator checkbox + nested values
+        if (!empty($raw_settings['loading_indicator']) && is_array($raw_settings['loading_indicator'])) {
+            $settings['loading_indicator'] = [
+                'url' => sanitize_text_field($raw_settings['loading_indicator']['url'] ?? ''),
+                'position' => sanitize_text_field($raw_settings['loading_indicator']['position'] ?? 'right'),
+                'enabled' => isset($raw_settings['loading_indicator']) ? '1' : '0'
+            ];
+        } else {
+            // checkbox was not checked, still allow preserving the loader values
+            $settings['loading_indicator'] = [
+                'url' => '',
+                'position' => 'right',
+                'enabled' => '0'
+            ];
+        }
+
+        // Save custom radio validation separately
+        $settings['radio_custom_validation'] = isset($raw_settings['radio_custom_validation']) ? '1' : '0';
+
         update_post_meta($form_id, '_cf7_enhancer_settings', $settings);
+
         add_action('admin_notices', function () {
             echo '<div class="updated"><p>Settings saved successfully.</p></div>';
         });
     }
 });
+
 
 
 add_action('wpcf7_add_meta_boxes', function () {
@@ -279,4 +382,14 @@ function render_radio_validation_setting($post) {
         <input type="checkbox" name="cf7_enhancer_radio_custom_validation" value="1" <?php checked($enabled, '1'); ?>>
         <?php esc_html_e('Enable custom radio button validation?', 'cf7-enhancer'); ?>
     </label>
-    <?php }; ?>
+    <?php };
+    
+    
+    
+
+  
+    
+    
+    
+    
+    ?>
