@@ -1,4 +1,6 @@
 
+
+
 document.addEventListener('DOMContentLoaded', function () {
   const forms = document.querySelectorAll('form.wpcf7-form');
         forms.forEach(form => {
@@ -7,6 +9,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const formId = formIdInput.value;
         const settings = cf7EnhancerSettings.forms[formId];
+        console.log(settings);
+        
 // console.log(cf7EnhancerSettings.forms[formId].radio_custom_validation);
         
         
@@ -197,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
                 
                 if (!valid && summary) {
-                    summary.innerHTML = '<p>Please correct the errors below.</p>';
+                    summary.innerHTML = '<p>Please correct the errors.</p>';
                     // if (settings.auto_scroll) summary.scrollIntoView({ behavior: 'smooth' });
                     
                     const firstInvalidField = form.querySelector('.cf7-invalid');
@@ -228,9 +232,49 @@ document.addEventListener('DOMContentLoaded', function () {
                   return false; // just in case
                 }
                 
-                // if (settings.loading_indicator) {
-                //         form.classList.add('cf7-enhancer-loading');
-                //     }
+                if (settings.loading_indicator) {
+                        const extension = settings.loading_indicator.url.split('.').pop().split(/\#|\?/)[0].toLowerCase();
+                        console.log('Image extension:', extension);
+                        const spinner = document.querySelector('.wpcf7-spinner');
+                        
+                        if (spinner) {
+                            spinner.style.backgroundImage = 'url("'+settings.loading_indicator.url+'")';
+                            spinner.style.backgroundSize = 'contain';
+                            spinner.style.backgroundColor = 'transparent';
+                            spinner.style.backgroundRepeat = 'no-repeat';
+                            spinner.style.backgroundPosition = 'center';
+                            // spinner.style.width = '24px';   // or your desired width
+                            // spinner.style.height = '24px';  // or your desired height
+                            if(settings.loading_indicator.position == 'bottom'){
+                               spinner.style.display="block"; 
+                               spinner.style.marginTop="20px"; 
+                            }
+                            if(settings.loading_indicator.position == 'right'){
+                               spinner.style.float = "right";
+                                
+                            }
+                            if(extension != 'gif'){
+                            spinner.style.transformOrigin = '8px 8px';
+                            spinner.style.animationName = 'spin';
+                            spinner.style.animationDuration = '1000ms';
+                            spinner.style.animationTimingFunction = 'linear';
+                            spinner.style.animationIterationCount = 'infinite';
+                            }
+                            const style = document.createElement('style');
+                            style.innerHTML = `
+                              .wpcf7-spinner::before {
+                                display: none !important;
+                              }
+                               @keyframes spin {
+                                from { transform: rotate(0deg); }
+                                to { transform: rotate(360deg); }
+                              }
+                            `;
+                            document.head.appendChild(style);
+
+                        }
+                        // form.classList.add('cf7-enhancer-loading');
+                    }
             });
         });
   // Optional: reposition CF7 response message if needed
@@ -248,4 +292,4 @@ document.addEventListener('DOMContentLoaded', function () {
       form.prepend(response);
     }
   });
-});
+})
