@@ -1,21 +1,9 @@
-
 <?php
-
-
-// Plugin Settings Page
-add_action('admin_menu', function () {
-    add_menu_page(
-        'CF7 Enhancer Settings',
-        'CF7 Enhancer',
-        'manage_options',
-        'cf7-enhancer',
-        'cf7_enhancer_render_settings_page'
-    );
-});
+namespace CF7Enhancer;
 
 function cf7_enhancer_render_settings_page()
 {
-    echo '<label for="form_id"><strong>Select Form:</strong></label> ';
+    // echo '<label for="form_id"><strong>Select Form:</strong></label> ';
 
     $selected_form_id = isset($_GET['form_id']) ? intval($_GET['form_id']) : 0;
 
@@ -166,52 +154,6 @@ function cf7_enhancer_settings_field_checkbox($id, $label, $settings)
     echo "</tr>";
 }
 
-// Save Settings
-// add_action('admin_init', function () {
-//     if (
-//         isset($_POST['cf7_enhancer_settings'], $_POST['form_id']) &&
-//         check_admin_referer('cf7_enhancer_save_settings', 'cf7_enhancer_nonce')
-//     ) {
-//         $form_id = intval($_POST['form_id']);
-//         // $settings = $_POST['cf7_enhancer_settings'];
-//         // if (!isset($settings['radio_custom_validation'])) {
-//         //     $settings['radio_custom_validation'] = '0';
-//         //     // echo "hello".$settings['radio_custom_validation'];
-//         //     // die;
-//         // }
-        
-        
-//         $raw_settings = $_POST['cf7_enhancer_settings'];
-//         $settings = [];
-        
-//         $toggles = ['realtime_validation', 'floating_labels', 'highlight_invalid', 'auto_scroll', 'loading_indicator'];
-//         foreach ($toggles as $toggle) {
-//             $settings[$toggle] = isset($raw_settings[$toggle]) ? '1' : '0';
-//         }
-        
-//         // Preserve the loader data (nested structure)
-//         if (!empty($raw_settings['loading_indicator']) && is_array($raw_settings['loading_indicator'])) {
-//             $settings['loading_indicator'] = array_merge(
-//                 ['url' => '', 'position' => 'right'],
-//                 $raw_settings['loading_indicator']
-//             );
-//         }
-        
-//         // Radio validation setting (handled separately)
-//         $settings['radio_custom_validation'] = isset($raw_settings['radio_custom_validation']) ? '1' : '0';
-
-//         // echo '<pre>';
-//         // print_r($settings);
-//         // echo '</pre>';
-
-//         update_post_meta($form_id, '_cf7_enhancer_settings', $settings);
-//         add_action('admin_notices', function () {
-//             echo '<div class="updated"><p>Settings saved successfully.</p></div>';
-//         });
-//     }
-// });
-
-
 add_action('admin_init', function () {
     if (
         isset($_POST['cf7_enhancer_settings'], $_POST['form_id']) &&
@@ -277,13 +219,17 @@ add_action('wpcf7_add_meta_boxes', function () {
 });
 
 
-add_filter('wpcf7_validate_radio*', 'cf7_enhancer_bypass_radio_validation_if_disabled', 5, 2);
-add_filter('wpcf7_validate_radio', 'cf7_enhancer_bypass_radio_validation_if_disabled', 5, 2);
+// add_filter('wpcf7_validate_radio*', 'cf7_enhancer_bypass_radio_validation_if_disabled', 5, 2);
+// add_filter('wpcf7_validate_radio', 'cf7_enhancer_bypass_radio_validation_if_disabled', 5, 2);
+
+add_filter('wpcf7_validate_radio*', __NAMESPACE__ . '\\cf7_enhancer_bypass_radio_validation_if_disabled', 5, 2);
+add_filter('wpcf7_validate_radio', __NAMESPACE__ . '\\cf7_enhancer_bypass_radio_validation_if_disabled', 5, 2);
+
 
 function cf7_enhancer_bypass_radio_validation_if_disabled($result, $tag) {
     if (is_admin()) return $result;
 
-    $submission = WPCF7_Submission::get_instance();
+    $submission = \WPCF7_Submission::get_instance();
     if (!$submission) return $result;
 
     $form = $submission->get_contact_form();
@@ -301,7 +247,7 @@ function cf7_enhancer_bypass_radio_validation_if_disabled($result, $tag) {
         error_log(print_r($invalid_fields,true));
         if (isset($invalid_fields[$field_name])) {
             // Use reflection to clear the private invalid field
-            $ref = new ReflectionClass($result);
+            $ref = new \ReflectionClass($result);
             if ($ref->hasProperty('invalid_fields')) {
                 $prop = $ref->getProperty('invalid_fields');
                 $prop->setAccessible(true);
@@ -317,53 +263,6 @@ function cf7_enhancer_bypass_radio_validation_if_disabled($result, $tag) {
 
     return $result;
 }
-
-
-
-
-// add_filter('wpcf7_validate', 'cf7_enhancer_force_valid_submission_if_radio_disabled', 20, 2);
-
-// function cf7_enhancer_force_valid_submission_if_radio_disabled($result, $tags) {
-//     $submission = WPCF7_Submission::get_instance();
-//     error_log("submission");
-//     error_log(print_r($submission,true));
-//     if (!$submission) return $result;
-
-//     $form = $submission->get_contact_form();
-//     if (!$form) return $result;
-
-//     $form_id = $form->id();
-//     error_log("$form_id");
-//     error_log(print_r($form_id,true));
-//     $settings = get_post_meta($form_id, '_cf7_enhancer_settings', true);
-//     if (isset($settings['radio_custom_validation']) && $settings['radio_custom_validation'] === '0') {
-//         if (!$result->is_valid()) {
-//             $invalid_fields = $result->get_invalid_fields();
-//             $only_radios = true;
-
-//             foreach ($invalid_fields as $field_name => $msg) {
-//                 foreach ($tags as $tag) {
-//                     if ($tag->name === $field_name && $tag->type !== 'radio') {
-//                         $only_radios = false;
-//                         break 2;
-//                     }
-//                 }
-//             }
-
-//             if ($only_radios) {
-//                 // Create a new result object and mark it valid
-//                 $new_result = new WPCF7_Validation();
-//                 $new_result->set_valid(true);
-//                 return $new_result;
-//             }
-//         }
-//     }
-
-//     return $result;
-// }
-
-
-
 
 function render_radio_validation_setting($post) {
     $form_id = $post->ID;
@@ -382,14 +281,4 @@ function render_radio_validation_setting($post) {
         <input type="checkbox" name="cf7_enhancer_radio_custom_validation" value="1" <?php checked($enabled, '1'); ?>>
         <?php esc_html_e('Enable custom radio button validation?', 'cf7-enhancer'); ?>
     </label>
-    <?php };
-    
-    
-    
-
-  
-    
-    
-    
-    
-    ?>
+    <?php }; 
