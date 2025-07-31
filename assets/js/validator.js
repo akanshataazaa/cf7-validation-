@@ -1,6 +1,3 @@
-
-
-
 document.addEventListener('DOMContentLoaded', function () {
   const forms = document.querySelectorAll('form.wpcf7-form');
         forms.forEach(form => {
@@ -9,7 +6,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const formId = formIdInput.value;
         const settings = cf7EnhancerSettings.forms[formId];
-        console.log(settings);
+        // console.log(cf7EnhancerSettings.forms);
+        // console.log(cf7EnhancerSettings.forms[formId]);
+        // console.log(settings);
         
 // console.log(cf7EnhancerSettings.forms[formId].radio_custom_validation);
         
@@ -35,7 +34,9 @@ document.addEventListener('DOMContentLoaded', function () {
               const pattern = field.getAttribute('pattern') || field.dataset.pattern;
               const required = field.classList.contains('wpcf7-validates-as-required') ||
                             (field.closest('.wpcf7-form-control')?.classList.contains('wpcf7-validates-as-required'));
-            
+              
+              const isVisible = field.offsetParent !== null || field.getClientRects().length > 0;
+              const isRequired = required && isVisible;
               let errorWrap;
               if (type === 'checkbox' || type === 'radio') {
                 errorWrap = form.querySelector(`.wpcf7-form-control-wrap[data-name="${field.name.replace(/\[\]$/, '')}"]`);
@@ -55,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
               let message = '';
             
             //   console.log(type);
-              if (!required  && type != 'radio') return true;
+              if (!isRequired  && type != 'radio') return true;
               if (type === 'checkbox' || (type === 'radio' && settings.radio_custom_validation == 1 )) {
             //console.log('Type=> '+ type);
                   
@@ -234,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 if (settings.loading_indicator) {
                         const extension = settings.loading_indicator.url.split('.').pop().split(/\#|\?/)[0].toLowerCase();
-                        console.log('Image extension:', extension);
+                        // console.log('Image extension:', extension);
                         const spinner = document.querySelector('.wpcf7-spinner');
                         
                         if (spinner) {
@@ -292,4 +293,4 @@ document.addEventListener('DOMContentLoaded', function () {
       form.prepend(response);
     }
   });
-})
+});
